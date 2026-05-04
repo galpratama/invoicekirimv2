@@ -5,3 +5,16 @@ node_modules
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# AI tool configs
+.agents/
+.claude/
+.factory/
+.kilocode/
+.kiro/
+.roo/
+.trae/
+.windsurf/
+skills/
+skills-lock.json
+scripts/
