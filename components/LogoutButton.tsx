@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 
 interface Props {
-  action: () => Promise<never>;
+  action: () => Promise<void>;
 }
 
 export function LogoutButton({ action }: Props) {
