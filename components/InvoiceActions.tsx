@@ -38,7 +38,8 @@ export function InvoiceActions({
 
   async function handleCopyLink() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const url = `${window.location.origin}/invoice/${id}`;
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
