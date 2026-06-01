@@ -1,4 +1,6 @@
-export function CTA() {
+import Link from "next/link";
+
+export function CTA({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
     <section id="daftar" className="mx-auto max-w-6xl px-6 py-24 md:py-32">
       <div className="relative overflow-hidden rounded-3xl border border-line bg-surface px-8 py-16 text-center md:px-16 md:py-24">
@@ -16,12 +18,12 @@ export function CTA() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href="#"
+          <Link
+            href={isLoggedIn ? "/dashboard" : "/login"}
             className="rounded-full bg-ink px-8 py-4 text-sm font-medium text-bg transition hover:bg-brand"
           >
-            Daftar Gratis
-          </a>
+            {isLoggedIn ? "Buka Dashboard" : "Daftar Gratis"}
+          </Link>
           <a
             href="#fitur"
             className="rounded-full px-6 py-4 text-sm font-medium text-ink-soft transition hover:text-ink"

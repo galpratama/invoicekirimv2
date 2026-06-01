@@ -1,4 +1,6 @@
-export function Hero() {
+import Link from "next/link";
+
+export function Hero({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
     <section className="relative overflow-hidden">
       <div className="mx-auto grid max-w-6xl gap-16 px-6 pt-20 pb-24 md:grid-cols-2 md:items-center md:gap-12 md:pt-28 md:pb-32">
@@ -20,15 +22,26 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <a
-              href="#daftar"
-              className="rounded-full bg-ink px-7 py-3.5 text-sm font-medium text-bg shadow-sm transition hover:bg-brand"
-            >
-              Mulai Gratis — Tanpa Kartu Kredit
-            </a>
-            <span className="text-sm text-muted">
-              Setup &lt; 2 menit · Bahasa Indonesia
-            </span>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="rounded-full bg-ink px-7 py-3.5 text-sm font-medium text-bg shadow-sm transition hover:bg-brand"
+              >
+                Buka Dashboard →
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full bg-ink px-7 py-3.5 text-sm font-medium text-bg shadow-sm transition hover:bg-brand"
+                >
+                  Mulai Gratis — Tanpa Kartu Kredit
+                </Link>
+                <span className="text-sm text-muted">
+                  Setup &lt; 2 menit · Bahasa Indonesia
+                </span>
+              </>
+            )}
           </div>
         </div>
 

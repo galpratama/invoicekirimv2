@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { getUserPlan, getMonthlyInvoiceCount, FREE_INVOICE_LIMIT } from "@/lib/subscription";
 
 export const metadata = {
   title: "Dashboard — InvoiceKirim",
@@ -41,6 +42,61 @@ function formatDate(dateStr: string) {
   });
 }
 
+function UsageCard({
+  plan,
+  count,
+  limit,
+}: {
+  plan: "free" | "pro";
+  count: number;
+  limit: number;
+}) {
+  if (plan === "pro") {
+    return (
+      <div className="mb-6 flex items-center gap-3 rounded-[--radius-card] border border-line bg-surface px-5 py-4">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+          Pro
+        </span>
+        <p className="text-sm font-medium text-ink">Pro — Unlimited Invoice</p>
+      </div>
+    );
+  }
+
+  const pct = Math.min((count / limit) * 100, 100);
+  const barColor =
+    count >= limit ? "bg-red-500" : count >= limit - 1 ? "bg-yellow-400" : "bg-green-500";
+  const textColor =
+    count >= limit ? "text-red-600" : count >= limit - 1 ? "text-yellow-600" : "text-green-700";
+
+  return (
+    <div className="mb-6 rounded-[--radius-card] border border-line bg-surface px-5 py-4">
+      <div className="mb-2 flex items-center justify-between text-sm">
+        <span className="font-medium text-ink">
+          Invoice bulan ini
+        </span>
+        <span className={`font-semibold ${textColor}`}>
+          {count} dari {limit}
+        </span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-bg-soft">
+        <div
+          className={`h-full rounded-full transition-all ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {count >= limit && (
+        <p className="mt-2 text-xs text-muted">
+          Limit tercapai.{" "}
+          <Link href="/upgrade" className="font-medium text-brand hover:underline">
+            Upgrade ke Pro
+          </Link>{" "}
+          untuk invoice tak terbatas.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "paid") {
     return (
@@ -66,10 +122,14 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, client_name, total, status, created_at")
-    .order("created_at", { ascending: false });
+  const [plan, monthlyCount, { data: invoices }] = await Promise.all([
+    getUserPlan(supabase, user.id),
+    getMonthlyInvoiceCount(supabase, user.id),
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, client_name, total, status, created_at")
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -92,26 +152,38 @@ export default async function DashboardPage() {
               Selamat datang di dashboard InvoiceKirim.
             </p>
           </div>
-          <Link
-            href="/dashboard/invoices/new"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          <div className="flex shrink-0 items-center gap-3">
+            {plan === "free" && (
+              <Link
+                href="/upgrade"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-brand-soft"
+              >
+                ✦ Upgrade ke Pro
+              </Link>
+            )}
+            <Link
+              href="/dashboard/invoices/new"
+              className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            Bikin Invoice Baru
-          </Link>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+              Bikin Invoice Baru
+            </Link>
+          </div>
         </div>
+
+        <UsageCard plan={plan} count={monthlyCount} limit={FREE_INVOICE_LIMIT} />
 
         {invoices && invoices.length > 0 ? (
           <div className="overflow-hidden rounded-[--radius-card] border border-line bg-surface">
